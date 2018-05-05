@@ -25,10 +25,13 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(naviga
     fps = 29;
 }
 
+let play = true;
+
 // Draw
 function draw() {
     // Loop
-    requestAnimationFrame(draw);
+    if(play)
+        requestAnimationFrame(draw);
 
     // Set NOW and DELTA
     now   = Date.now();
