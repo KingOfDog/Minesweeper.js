@@ -3,7 +3,7 @@ const ctx = canvas.getContext('2d');
 
 const fieldSize = {x: 15, y: 10};
 let tileSize;
-const bombCount = 30;
+const bombCount = 25;
 const field = [];
 let gameOver = false;
 let victory = false;
@@ -165,7 +165,7 @@ function drawTile(x, y, animations = true) {
     let duration = 150;
     if (!animations)
         duration = 0;
-    console.log(animations);
+
     if (!field[x][y].flagged && field[x][y].clicked) {
         animateTile(x * tileSize.x + .1 * tileSize.x, y * tileSize.y + .1 * tileSize.y,
             0, 0,
@@ -201,10 +201,12 @@ function gameOverEvent() {
 }
 
 function getPositon(e) {
-    const x = e.x - canvas.offsetLeft;
-    const y = e.y - canvas.offsetTop;
+    const x = e.x - canvas.offsetLeft - offsetX * scaleFactor;
+    const y = e.y - canvas.offsetTop - offsetY * scaleFactor;
+    console.log(x, y);
     const fieldX = Math.floor(x / tileSize.x);
     const fieldY = Math.floor(y / tileSize.y);
+    console.log(fieldX, fieldY);
 
     return {x: fieldX, y: fieldY};
 }
@@ -271,10 +273,12 @@ function initBombs(startX, startY) {
 }
 
 function scaleCanvas() {
-    tileSize = {x: window.innerWidth / fieldSize.x * .9, y: window.innerWidth / fieldSize.x * .9};
+    tileSize = {x: window.innerWidth / fieldSize.x * .9 / scale, y: window.innerWidth / fieldSize.x * .9 / scale};
 
     W = fieldSize.x * tileSize.x;
     H = fieldSize.y * tileSize.y;
+
+    console.log(canvas);
 
     canvas.width = W;
     canvas.height = H;
@@ -283,9 +287,13 @@ function scaleCanvas() {
     overlay2Canvas.width = W;
     overlay2Canvas.height = H;
 
+    offsetX = -W * scale * 10;
+    offsetY = -H * scale * 10;
+
     initBalls();
 
     drawGrid(false);
+    applyScaling();
     if (gameOver) {
         gameOverEvent();
     } else if (victory) {
@@ -417,6 +425,71 @@ overlay2Canvas.addEventListener("contextmenu", (e) => {
 
     tileFlag(pos.x, pos.y);
 });
+
+let scale = 1;
+let offsetX = 0;
+let offsetY = 0;
+
+window.addEventListener("keyup", (e) => {
+    e.preventDefault();
+
+    if(e.keyCode === 171) {
+        scale += .2;
+    } else if(e.keyCode === 173) {
+        if(canvas.width * scale > window.innerWidth && canvas.height * scale > window.innerHeight)
+            scale -= .2;
+    }
+
+    applyScaling();
+
+    console.log("Test");
+});
+
+let startClientX = 0;
+let startClientY = 0;
+
+let isDragging = false;
+
+document.addEventListener("mousedown", (e) => {
+    console.log(e);
+    if(e.button === 0) {
+        isDragging = true;
+        startClientX = e.clientX;
+        startClientY = e.clientY;
+    }
+});
+
+document.addEventListener("mouseup", (e) => {
+    isDragging = false;
+});
+
+document.addEventListener("mousemove", (e) => {
+    if(isDragging) {
+        // console.log(e, e.clientX - startClientX, e.clientY - startClientY);
+        offsetX += (e.clientX - startClientX);
+        offsetY += (e.clientY - startClientY);
+        startClientX = e.clientX;
+        startClientY = e.clientY;
+        applyScaling();
+    }
+});
+
+// document.addEventListener("dragstart", (e) => {
+//     console.log(e);
+//     startClientX = e.clientX;
+//     startClientY = e.clientY;
+// });
+//
+// overlay2Canvas.addEventListener("drag", (e) => {
+//     console.log(startClientX - e.clientX);
+// });
+
+function applyScaling() {
+    canvas.style.transform = "scale(" + scale + ") translate(" + offsetX + "px, " + offsetY + "px)";
+    overlayCanvas.style.transform = "scale(" + scale + ") translate(" + offsetX + "px, " + offsetY + "px)";
+    overlay2Canvas.style.transform = "scale(" + scale + ") translate(" + offsetX + "px, " + offsetY + "px)";
+    console.log("scale(" + scale + ") translate(" + offsetX + "px, " + offsetY + "px)");
+}
 
 window.addEventListener("resize", () => {
     scaleCanvas();

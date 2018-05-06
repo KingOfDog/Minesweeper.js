@@ -7,7 +7,7 @@ window.requestAnimFrame = (function (callback) {
 const overlayCanvas = document.getElementById('minesweeper-overlay');
 const overlayCtx = overlayCanvas.getContext('2d');
 
-const particlesPerExplosion = 50;
+const particlesPerExplosion = 20;
 const particlesMinSpeed     = 3;
 const particlesMaxSpeed     = 6;
 const particlesMinSize      = 3;
