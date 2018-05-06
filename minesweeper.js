@@ -88,7 +88,7 @@ function animateTile(x, y, curWidth, curHeight, finalWidth, finalHeight, curRadi
 function animateText(text, x, y, curFontSize, finalFontSize, startTime, duration, color, font, context) {
     const time = (new Date()).getTime() - startTime;
 
-    if(context === undefined)
+    if (context === undefined)
         context = ctx;
 
     if (curFontSize === finalFontSize)
@@ -136,11 +136,11 @@ function countFlaggedBombs(x, y) {
     return tiles.countFlagged(true);
 }
 
-function drawGrid() {
+function drawGrid(animations = true) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let x = 0; x < fieldSize.x; x++) {
         for (let y = 0; y < fieldSize.y; y++) {
-            drawTile(x, y);
+            drawTile(x, y, animations);
         }
     }
 }
@@ -159,32 +159,30 @@ function drawRoundedRect(context, x, y, w, h, r, color) {
     context.fill();
 }
 
-function drawTile(x, y) {
+function drawTile(x, y, animations = true) {
     const fontSize = tileSize.y * scaleFactor;
     ctx.textAlign = "center";
+    let duration = 150;
+    if (!animations)
+        duration = 0;
+    console.log(animations);
     if (!field[x][y].flagged && field[x][y].clicked) {
         animateTile(x * tileSize.x + .1 * tileSize.x, y * tileSize.y + .1 * tileSize.y,
             0, 0,
             tileSize.x - (.2 * tileSize.x), tileSize.y - (.2 * tileSize.y),
             0, tileSize.x * .1,
-            new Date().getTime(), 150, "#ddd");
-        setTimeout(() => {
-
-        }, 151);
+            new Date().getTime(), duration, "#ddd");
         if (field[x][y].tileValue !== 0) {
-            animateText(field[x][y].tileValue, (x + .5) * tileSize.x, y * tileSize.y, 0, fontSize, new Date().getTime(), 150, colors[field[x][y].tileValue]);
-            setTimeout(() => {
-                animateText(field[x][y].tileValue, (x + .5) * tileSize.x, y * tileSize.y, fontSize, fontSize, new Date().getTime(), 1, colors[field[x][y].tileValue]);
-            }, 151);
+            animateText(field[x][y].tileValue, (x + .5) * tileSize.x, y * tileSize.y, 0, fontSize, new Date().getTime(), duration, colors[field[x][y].tileValue]);
         }
     } else if (field[x][y].flagged) {
         animateTile(x * tileSize.x + .1 * tileSize.x, y * tileSize.y + .1 * tileSize.y,
             0, 0,
             tileSize.x - (.2 * tileSize.x), tileSize.y - (.2 * tileSize.y),
             0, tileSize.x * .1,
-            new Date().getTime(), 150, "#ff0000");
+            new Date().getTime(), duration, "#ff0000");
 
-        animateText("", (x + .5) * tileSize.x, y * tileSize.y, 0, fontSize, new Date().getTime(), 150, "white", "FontAwesome");
+        animateText("", (x + .5) * tileSize.x, y * tileSize.y, 0, fontSize, new Date().getTime(), duration, "white", "FontAwesome");
     } else {
         drawRoundedRect(ctx, x * tileSize.x + (.1 * tileSize.x), y * tileSize.y + (.1 * tileSize.y), tileSize.x - (.2 * tileSize.x), tileSize.y - (.2 * tileSize.y), tileSize.x * .1, "#2e8cdd");
     }
@@ -248,7 +246,6 @@ function initGame() {
     }
 
     scaleCanvas();
-    initBalls();
 }
 
 function initBombs(startX, startY) {
@@ -286,9 +283,13 @@ function scaleCanvas() {
     overlay2Canvas.width = W;
     overlay2Canvas.height = H;
 
-    drawGrid();
+    initBalls();
+
+    drawGrid(false);
     if (gameOver) {
         gameOverEvent();
+    } else if (victory) {
+        victoryEvent();
     }
 }
 

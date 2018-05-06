@@ -9,7 +9,7 @@ overlay2Canvas.width = W;
 overlay2Canvas.height = H;
 
 //Random Circles creator
-function create() {
+function Create() {
     //Place the circles at the center
     this.x = W/2;
     this.y = H/2;
@@ -28,8 +28,9 @@ function create() {
 }
 
 function initBalls() {
+    circles = [];
     for (let i = 0; i < 500; i++) {
-        circles.push(new create());
+        circles.push(new Create());
     }
 }
 
@@ -54,7 +55,7 @@ function drawVictory() {
         c.radius -= .02;
 
         if(c.radius < 0)
-            circles[j] = new create();
+            circles[j] = new Create();
     }
 }
 
