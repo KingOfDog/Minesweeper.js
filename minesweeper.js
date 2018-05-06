@@ -1,7 +1,7 @@
 const canvas = document.getElementById('minesweeper-game');
 const ctx = canvas.getContext('2d');
 
-const fieldSize = {x: 15, y: 10};
+const fieldSize = {x: 16, y: 12};
 let tileSize;
 const bombCount = 25;
 const field = [];
@@ -9,6 +9,12 @@ let gameOver = false;
 let victory = false;
 const scaleFactor = .5;
 let isFirstClick = true;
+
+let windowX = 0;
+let windowY = 0;
+let zoomFactor = 1;
+
+let renderingConfig;
 
 /**
  * Defines all possible colors for the tile numbers
@@ -32,8 +38,6 @@ function animateBackground(x, y, width, height, curOpacity, finalOpacity, startT
         return;
 
     const newOpacity = easeInOutCubic(time, 0, finalOpacity, duration);
-
-    console.log(newOpacity, finalOpacity, color);
 
     if (newOpacity <= finalOpacity)
         curOpacity = newOpacity;
@@ -76,7 +80,7 @@ function animateTile(x, y, curWidth, curHeight, finalWidth, finalHeight, curRadi
     else
         curRadius = finalRadius;
 
-    drawRoundedRect(ctx, x + 1, y + 1, finalWidth - 2, finalHeight - 2, finalRadius, "#2e8cdd");
+    // drawRoundedRect(ctx, x + 1, y + 1, finalWidth - 2, finalHeight - 2, finalRadius, getColor(x, y));
 
     drawRoundedRect(ctx, x + (finalWidth - curWidth) / 2, y + (finalHeight - curHeight) / 2, curWidth, curHeight, curRadius, color);
 
@@ -102,17 +106,44 @@ function animateText(text, x, y, curFontSize, finalFontSize, startTime, duration
         curFontSize = finalFontSize;
     }
 
+    const textDrawX = (x + .5 - renderingConfig.tiltX) * renderingConfig.sizeX;
+    const textDrawY = (y + .5 - renderingConfig.tiltY) * renderingConfig.sizeY + curFontSize * .33;
+
     if (font === undefined)
         font = "Roboto";
 
     context.fillStyle = color;
     context.font = "bold " + curFontSize + "px " + font;
     context.textAlign = "center";
-    context.fillText(text, x, y + tileSize.y * .5 + curFontSize * .33);
+    context.fillText(text, textDrawX, textDrawY);
 
     requestAnimFrame(function () {
         animateText(text, x, y, curFontSize, finalFontSize, startTime, duration, color, font, context);
     });
+}
+
+function applyScaling() {
+    renderingConfig = calcScaling();
+
+    drawGrid(false);
+}
+
+function calcScaling(field = fieldSize, tile = tileSize, zoom = zoomFactor) {
+    const width = Math.ceil(field.x * zoom);
+    const height = Math.ceil(field.y * zoom);
+
+    const offsetX = Math.floor(windowX * field.x);
+    const offsetY = Math.floor(windowY * field.y);
+
+    const tiltX = windowX * field.x - offsetX;
+    const tiltY = windowY * field.y - offsetY;
+
+    const sizeX = tile.x / zoom;
+    const sizeY = tile.y / zoom;
+
+    return {
+        width, height, offsetX, offsetY, tiltX, tiltY, sizeX, sizeY
+    };
 }
 
 function countClickedTiles() {
@@ -138,8 +169,9 @@ function countFlaggedBombs(x, y) {
 
 function drawGrid(animations = true) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let x = 0; x < fieldSize.x; x++) {
-        for (let y = 0; y < fieldSize.y; y++) {
+
+    for (let x = 0; x < renderingConfig.width; x++) {
+        for (let y = 0; y < renderingConfig.height; y++) {
             drawTile(x, y, animations);
         }
     }
@@ -160,32 +192,57 @@ function drawRoundedRect(context, x, y, w, h, r, color) {
 }
 
 function drawTile(x, y, animations = true) {
-    const fontSize = tileSize.y * scaleFactor;
+    const virtualX = renderingConfig.offsetX + x;
+    const virtualY = renderingConfig.offsetY + y;
+
+    const content = field[virtualX][virtualY];
+
+    const width = .8 * renderingConfig.sizeX;
+    const height = .8 * renderingConfig.sizeY;
+    const drawX = (x + .1 - renderingConfig.tiltX) * renderingConfig.sizeX;
+    const drawY = (y + .1 - renderingConfig.tiltY) * renderingConfig.sizeY;
+    const radius = renderingConfig.sizeX * .1;
+
+    let color = getColor(virtualX, virtualY);
+    const fontSize = renderingConfig.sizeY * .5;
+    let fontFamily = "Roboto";
+    let textColor = "white";
+    let text = "";
+
     ctx.textAlign = "center";
-    let duration = 150;
-    if (!animations)
-        duration = 0;
+    let duration = 0;
+    if (animations)
+        duration = 150;
 
-    if (!field[x][y].flagged && field[x][y].clicked) {
-        animateTile(x * tileSize.x + .1 * tileSize.x, y * tileSize.y + .1 * tileSize.y,
-            0, 0,
-            tileSize.x - (.2 * tileSize.x), tileSize.y - (.2 * tileSize.y),
-            0, tileSize.x * .1,
-            new Date().getTime(), duration, "#ddd");
-        if (field[x][y].tileValue !== 0) {
-            animateText(field[x][y].tileValue, (x + .5) * tileSize.x, y * tileSize.y, 0, fontSize, new Date().getTime(), duration, colors[field[x][y].tileValue]);
+    if (!content.flagged && content.clicked) {
+        color = "#ddd";
+        if (content.tileValue !== 0) {
+            text = content.tileValue;
+            textColor = colors[content.tileValue];
+            // animateText(content.tileValue, (x + .5) * tileSize.x, y * tileSize.y, 0, fontSize, new Date().getTime(), duration, colors[content.tileValue]);
         }
-    } else if (field[x][y].flagged) {
-        animateTile(x * tileSize.x + .1 * tileSize.x, y * tileSize.y + .1 * tileSize.y,
-            0, 0,
-            tileSize.x - (.2 * tileSize.x), tileSize.y - (.2 * tileSize.y),
-            0, tileSize.x * .1,
-            new Date().getTime(), duration, "#ff0000");
-
-        animateText("", (x + .5) * tileSize.x, y * tileSize.y, 0, fontSize, new Date().getTime(), duration, "white", "FontAwesome");
-    } else {
-        drawRoundedRect(ctx, x * tileSize.x + (.1 * tileSize.x), y * tileSize.y + (.1 * tileSize.y), tileSize.x - (.2 * tileSize.x), tileSize.y - (.2 * tileSize.y), tileSize.x * .1, "#2e8cdd");
+    } else if (content.flagged) {
+        color = "#ff0000";
+        fontFamily = "FontAwesome";
+        text = "";
+        // animateText("", (x + .5) * tileSize.x, y * tileSize.y, 0, fontSize, new Date().getTime(), duration, "white", "FontAwesome");
     }
+
+    animateTile(drawX, drawY, 0, 0, width, height, 0, radius, new Date().getTime(), duration, color);
+    if(text !== "") {
+        animateText(text, x, y, 0, fontSize, new Date().getTime(), duration, textColor, fontFamily, ctx);
+    }
+}
+
+function getColor(x, y) {
+    x++;
+    y++;
+    const pos = x * y;
+    const limit = fieldSize.x * fieldSize.y;
+
+    let percentage = pos / limit * 360;
+
+    return `hsl(${percentage},100%,50%)`;
 }
 
 function easeInOutCubic(t, b, c, d) {
@@ -200,13 +257,11 @@ function gameOverEvent() {
     animateText("Game Over", canvas.width / 2, canvas.height / 2, 0, tileSize.y * 1.33, new Date().getTime(), 200, "orange", "Roboto", overlay2Ctx);
 }
 
-function getPositon(e) {
-    const x = e.x - canvas.offsetLeft - offsetX * scaleFactor;
-    const y = e.y - canvas.offsetTop - offsetY * scaleFactor;
-    console.log(x, y);
-    const fieldX = Math.floor(x / tileSize.x);
-    const fieldY = Math.floor(y / tileSize.y);
-    console.log(fieldX, fieldY);
+function getPosition(e) {
+    const x = (e.x - canvas.offsetLeft) / W * zoomFactor + windowX;
+    const y = (e.y - canvas.offsetTop) / H * zoomFactor + windowY;
+    const fieldX = Math.floor(x * fieldSize.x);
+    const fieldY = Math.floor(y * fieldSize.y);
 
     return {x: fieldX, y: fieldY};
 }
@@ -273,12 +328,16 @@ function initBombs(startX, startY) {
 }
 
 function scaleCanvas() {
-    tileSize = {x: window.innerWidth / fieldSize.x * .9 / scale, y: window.innerWidth / fieldSize.x * .9 / scale};
+    let size = window.innerWidth / fieldSize.x * .9;
 
-    W = fieldSize.x * tileSize.x;
-    H = fieldSize.y * tileSize.y;
+    if(size * fieldSize.y > window.innerHeight) {
+        size = window.innerHeight / fieldSize.y * .9;
+    }
 
-    console.log(canvas);
+    tileSize = {x: size, y: size};
+
+    W = fieldSize.x * size;
+    H = fieldSize.y * size;
 
     canvas.width = W;
     canvas.height = H;
@@ -287,13 +346,10 @@ function scaleCanvas() {
     overlay2Canvas.width = W;
     overlay2Canvas.height = H;
 
-    offsetX = -W * scale * 10;
-    offsetY = -H * scale * 10;
-
     initBalls();
 
-    drawGrid(false);
     applyScaling();
+
     if (gameOver) {
         gameOverEvent();
     } else if (victory) {
@@ -326,7 +382,11 @@ function tileFlag(x, y) {
         return;
     field[x][y].flagged = !field[x][y].flagged;
     field[x][y].clicked = field[x][y].flagged;
-    ctx.clearRect(x * tileSize.x + (1 / scaleFactor), y * tileSize.y + (1 / scaleFactor), tileSize.x - (2 / scaleFactor), tileSize.y - (2 / scaleFactor));
+
+    const drawX = (x - renderingConfig.tiltX) * renderingConfig.sizeX;
+    const drawY = (y - renderingConfig.tiltY) * renderingConfig.sizeY;
+
+    ctx.clearRect(drawX, drawY, renderingConfig.sizeX, renderingConfig.sizeY);
     drawTile(x, y);
 }
 
@@ -344,7 +404,7 @@ function uncoverTile(x, y) {
         return;
     }
     field[x][y].clicked = true;
-    drawTile(x, y);
+    drawTile(x, y, );
     if (field[x][y].tileValue === true) {
         gameOverEvent();
     }
@@ -368,7 +428,7 @@ function victoryEvent() {
     play = false;
     const fontSize = tileSize.y * 1.33;
     animateBackground(0, 0, canvas.width, canvas.height, 0, .01, new Date().getTime(), 200, {r: 0, g: 0, b: 0, a: 0});
-    animateText("Victory!", canvas.width / 2, canvas.height / 2 - fontSize / 2, 0, fontSize, new Date().getTime(), 200, "green", "Roboto", overlay2Ctx);
+    animateText("Victory!", W / 2, H / 2 - fontSize / 2, 0, fontSize, new Date().getTime(), 200, "green", "Roboto", overlay2Ctx);
 }
 
 Object.prototype.count = function (val) {
@@ -396,7 +456,7 @@ Object.prototype.countFlagged = function (val) {
 };
 
 overlay2Canvas.addEventListener("click", (e) => {
-    const pos = getPositon(e);
+    const pos = getPosition(e);
 
     if (isFirstClick) {
         initBombs(pos.x, pos.y);
@@ -411,7 +471,7 @@ overlay2Canvas.addEventListener("click", (e) => {
 });
 
 overlay2Canvas.addEventListener("dblclick", (e) => {
-    const pos = getPositon(e);
+    const pos = getPosition(e);
 
     tileDoubleClick(pos.x, pos.y);
 
@@ -421,37 +481,47 @@ overlay2Canvas.addEventListener("dblclick", (e) => {
 overlay2Canvas.addEventListener("contextmenu", (e) => {
     e.preventDefault();
 
-    const pos = getPositon(e);
+    const pos = getPosition(e);
 
     tileFlag(pos.x, pos.y);
 });
 
-let scale = 1;
-let offsetX = 0;
-let offsetY = 0;
-
 window.addEventListener("keyup", (e) => {
     e.preventDefault();
 
-    if(e.keyCode === 171) {
-        scale += .2;
-    } else if(e.keyCode === 173) {
-        if(canvas.width * scale > window.innerWidth && canvas.height * scale > window.innerHeight)
-            scale -= .2;
+    if (e.code === "BracketRight") {
+        zoomFactor -= .1;
+    } else if (e.code === "Slash") {
+        zoomFactor += .1;
+    } else if (e.code === "ArrowLeft") {
+        windowX -= .1;
+    } else if (e.code === "ArrowRight") {
+        windowX += .1;
+    } else if (e.code === "ArrowUp") {
+        windowY -= .1;
+    } else if (e.code === "ArrowDown") {
+        windowY += .1;
+    } else {
+        return;
     }
 
-    applyScaling();
+    zoomFactor = Math.min(zoomFactor, 1);
+    zoomFactor = Math.max(zoomFactor, .1);
 
-    console.log("Test");
+    windowX = Math.min(windowX, 1 - zoomFactor);
+    windowY = Math.min(windowY, 1 - zoomFactor);
+    windowX = Math.max(windowX, 0);
+    windowY = Math.max(windowY, 0);
+
+    applyScaling();
 });
 
-let startClientX = 0;
-let startClientY = 0;
+// let startClientX = 0;
+// let startClientY = 0;
+//
+// let isDragging = false;
 
-let isDragging = false;
-
-document.addEventListener("mousedown", (e) => {
-    console.log(e);
+/*document.addEventListener("mousedown", (e) => {
     if(e.button === 0) {
         isDragging = true;
         startClientX = e.clientX;
@@ -465,14 +535,28 @@ document.addEventListener("mouseup", (e) => {
 
 document.addEventListener("mousemove", (e) => {
     if(isDragging) {
-        // console.log(e, e.clientX - startClientX, e.clientY - startClientY);
-        offsetX += (e.clientX - startClientX);
-        offsetY += (e.clientY - startClientY);
+        const deltaX = e.clientX - startClientX;
+        const deltaY = e.clientY - startClientY;
         startClientX = e.clientX;
         startClientY = e.clientY;
+        windowX -= 1 / deltaX / 10;
+        windowY -= 1 / deltaY / 10;
+
+        windowX = Math.min(windowX, 1 - zoomFactor);
+        windowY = Math.min(windowY, 1 - zoomFactor);
+        windowX = Math.max(windowX, 0);
+        windowY = Math.max(windowY, 0);
+
+        console.log(windowX, windowY);
+
+        // console.log(e, e.clientX - startClientX, e.clientY - startClientY);
+        // offsetX += (e.clientX - startClientX);
+        // offsetY += (e.clientY - startClientY);
+        // startClientX = e.clientX;
+        // startClientY = e.clientY;
         applyScaling();
     }
-});
+});*/
 
 // document.addEventListener("dragstart", (e) => {
 //     console.log(e);
@@ -483,13 +567,6 @@ document.addEventListener("mousemove", (e) => {
 // overlay2Canvas.addEventListener("drag", (e) => {
 //     console.log(startClientX - e.clientX);
 // });
-
-function applyScaling() {
-    canvas.style.transform = "scale(" + scale + ") translate(" + offsetX + "px, " + offsetY + "px)";
-    overlayCanvas.style.transform = "scale(" + scale + ") translate(" + offsetX + "px, " + offsetY + "px)";
-    overlay2Canvas.style.transform = "scale(" + scale + ") translate(" + offsetX + "px, " + offsetY + "px)";
-    console.log("scale(" + scale + ") translate(" + offsetX + "px, " + offsetY + "px)");
-}
 
 window.addEventListener("resize", () => {
     scaleCanvas();
