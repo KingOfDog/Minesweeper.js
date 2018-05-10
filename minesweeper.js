@@ -150,6 +150,11 @@ function calcScaling(field = fieldSize, tile = tileSize, zoom = zoomFactor) {
     };
 }
 
+function countBombs(x, y) {
+    const tiles = getSurroundingTiles(x, y);
+    return tiles.count(true);
+}
+
 function countClickedTiles() {
     let count = 0;
     for (let x = 0; x < fieldSize.x; x++) {
@@ -159,11 +164,6 @@ function countClickedTiles() {
         }
     }
     return count;
-}
-
-function countBombs(x, y) {
-    const tiles = getSurroundingTiles(x, y);
-    return tiles.count(true);
 }
 
 function countFlaggedBombs(x, y) {
@@ -255,17 +255,6 @@ function drawTile(x, y, animations = true) {
     }
 }
 
-function getColor(x, y) {
-    x++;
-    y++;
-    const pos = x * y;
-    const limit = fieldSize.x * fieldSize.y;
-
-    let percentage = pos / limit * 360;
-
-    return `hsl(${percentage},100%,50%)`;
-}
-
 function easeInOutCubic(t, b, c, d) {
     t /= d;
     t--;
@@ -276,6 +265,17 @@ function gameOverEvent() {
     play = false;
     animateBackground(0, 0, canvas.width, canvas.height, 0, .75, new Date().getTime(), 200, {r: 0, g: 0, b: 0, a: 0});
     animateText("Game Over", fieldSize.x / 2 - .5, fieldSize.y / 2 - .5, 0, tileSize.y * 1.33, new Date().getTime(), 200, "orange", "Roboto", overlay2Ctx);
+}
+
+function getColor(x, y) {
+    x++;
+    y++;
+    const pos = x * y;
+    const limit = fieldSize.x * fieldSize.y;
+
+    let percentage = pos / limit * 360;
+
+    return `hsl(${percentage},100%,50%)`;
 }
 
 function getPosition(e) {
@@ -312,21 +312,6 @@ function getSurroundingTiles(x, y) {
     return tiles;
 }
 
-/**
- * Initializes game by creating the game field and setting bombs
- */
-function initGame() {
-    for (let x = 0; x < fieldSize.x; x++) {
-        field.push([]);
-        for (let y = 0; y < fieldSize.y; y++) {
-            field[x].push({tileValue: 0, clicked: false, flagged: false});
-        }
-    }
-
-    scaleCanvas();
-    updateBombs();
-}
-
 function initBombs(startX, startY) {
     for (let i = 0; i < bombCount; i++) {
         const ranX = Math.floor(Math.random() * fieldSize.x);
@@ -347,6 +332,21 @@ function initBombs(startX, startY) {
             }
         }
     }
+}
+
+/**
+ * Initializes game by creating the game field and setting bombs
+ */
+function initGame() {
+    for (let x = 0; x < fieldSize.x; x++) {
+        field.push([]);
+        for (let y = 0; y < fieldSize.y; y++) {
+            field[x].push({tileValue: 0, clicked: false, flagged: false});
+        }
+    }
+
+    scaleCanvas();
+    updateBombs();
 }
 
 function initTime() {
@@ -557,31 +557,42 @@ overlay2Canvas.addEventListener("contextmenu", (e) => {
 window.addEventListener("keyup", (e) => {
     e.preventDefault();
 
+    const changeRate = .05;
+
+    let newZoomFactor = zoomFactor;
+    let newWindowX = windowX;
+    let newWindowY = windowY;
+
     if (e.code === "BracketRight") {
-        zoomFactor -= .1;
+        newZoomFactor -= changeRate;
     } else if (e.code === "Slash") {
-        zoomFactor += .1;
+        newZoomFactor += changeRate;
     } else if (e.code === "ArrowLeft") {
-        windowX -= .1;
+        newWindowX -= changeRate;
     } else if (e.code === "ArrowRight") {
-        windowX += .1;
+        newWindowX += changeRate;
     } else if (e.code === "ArrowUp") {
-        windowY -= .1;
+        newWindowY -= changeRate;
     } else if (e.code === "ArrowDown") {
-        windowY += .1;
+        newWindowY += changeRate;
     } else {
         return;
     }
 
-    zoomFactor = Math.min(zoomFactor, 1);
-    zoomFactor = Math.max(zoomFactor, .1);
+    newZoomFactor = Math.min(newZoomFactor, 1);
+    newZoomFactor = Math.max(newZoomFactor, .1);
 
-    windowX = Math.min(windowX, 1 - zoomFactor);
-    windowY = Math.min(windowY, 1 - zoomFactor);
-    windowX = Math.max(windowX, 0);
-    windowY = Math.max(windowY, 0);
+    newWindowX = Math.min(newWindowX, 1 - newZoomFactor);
+    newWindowY = Math.min(newWindowY, 1 - newZoomFactor);
+    newWindowX = Math.max(newWindowX, 0);
+    newWindowY = Math.max(newWindowY, 0);
 
-    applyScaling();
+    if(newZoomFactor !== zoomFactor || newWindowX !== windowX || newWindowY !== windowY) {
+        zoomFactor = newZoomFactor;
+        windowX = newWindowX;
+        windowY = newWindowY;
+        applyScaling();
+    }
 });
 
 let startClientX = 0;
