@@ -392,6 +392,16 @@ function scaleCanvas() {
     }
 }
 
+function testFlagPositions() {
+    for(let x = 0; x < fieldSize.x; x++) {
+        for(let y = 0; y < fieldSize.y; y++) {
+            if(field[x][y].flagged && field[x][y].tileValue !== true)
+                return false;
+        }
+    }
+    return true;
+}
+
 function tileClickEvent(x, y) {
     if (gameOver || victory)
         return;
@@ -459,7 +469,7 @@ function updateBombs() {
 }
 
 function victoryCheck() {
-    if (!victory && countClickedTiles() === fieldSize.x * fieldSize.y - bombCount) {
+    if (!victory && (countClickedTiles() === fieldSize.x * fieldSize.y - bombCount || (countTotalFlags() === bombCount && testFlagPositions()))) {
         victory = true;
         victoryEvent();
     }
@@ -540,6 +550,8 @@ overlay2Canvas.addEventListener("contextmenu", (e) => {
     tileFlag(pos.x, pos.y);
 
     updateBombs();
+
+    victoryCheck();
 });
 
 window.addEventListener("keyup", (e) => {
