@@ -139,7 +139,7 @@ function particle(x, y) {
     this.yv   = randInt(particlesMinSpeed, particlesMaxSpeed, false);
     this.size = randInt(particlesMinSize, particlesMaxSize, true);
     this.r    = randInt(2, 36);
-    this.g    = randInt(135, 150;
+    this.g    = randInt(135, 150);
     this.b    = randInt(190, 255);
 }
 
@@ -159,4 +159,4 @@ function randInt(min, max, positive) {
 
 }
 
-draw();
+drawClickAnimation();
