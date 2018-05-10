@@ -7,9 +7,9 @@ window.requestAnimFrame = (function (callback) {
 const overlayCanvas = document.getElementById('minesweeper-overlay');
 const overlayCtx = overlayCanvas.getContext('2d');
 
-const particlesPerExplosion = 10;
+const particlesPerExplosion = 20;
 const particlesMinSpeed     = 3;
-const particlesMaxSpeed     = 5;
+const particlesMaxSpeed     = 6;
 const particlesMinSize      = 3;
 const particlesMaxSize      = 6;
 const explosions            = [];
@@ -28,13 +28,10 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(naviga
 let play = true;
 
 // Draw
-function drawClickAnimation() {
+function draw() {
     // Loop
     if(play)
-        requestAnimationFrame(drawClickAnimation);
-
-    if(explosions.length === 0)
-        return;
+        requestAnimationFrame(draw);
 
     // Set NOW and DELTA
     now   = Date.now();
@@ -50,11 +47,14 @@ function drawClickAnimation() {
 
         // Our animation
         drawExplosion();
+
     }
+
 }
 
 // Draw explosion(s)
 function drawExplosion() {
+
     if (explosions.length === 0) {
         return;
     }
@@ -138,9 +138,9 @@ function particle(x, y) {
     this.xv   = randInt(particlesMinSpeed, particlesMaxSpeed, false);
     this.yv   = randInt(particlesMinSpeed, particlesMaxSpeed, false);
     this.size = randInt(particlesMinSize, particlesMaxSize, true);
-    this.r    = randInt(2, 36);
-    this.g    = randInt(135, 150);
-    this.b    = randInt(190, 255);
+    this.r    = randInt(113, 222);
+    this.g    = '00';
+    this.b    = randInt(105, 255);
 }
 
 // Returns an random integer, positive or negative
@@ -159,4 +159,4 @@ function randInt(min, max, positive) {
 
 }
 
-drawClickAnimation();
+draw();

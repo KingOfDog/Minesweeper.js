@@ -59,7 +59,7 @@ function drawVictory() {
     }
 }
 
-function animateVictory() {
-    requestAnimFrame(animateVictory);
+function animate() {
+    requestAnimFrame(animate);
     drawVictory();
 }
