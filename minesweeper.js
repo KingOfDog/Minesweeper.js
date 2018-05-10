@@ -1,5 +1,7 @@
 const canvas = document.getElementById('minesweeper-game');
 const ctx = canvas.getContext('2d');
+const container = document.getElementById('game-container');
+const timeEl = document.getElementById('time');
 
 const fieldSize = {x: 16, y: 12};
 let tileSize;
@@ -15,6 +17,9 @@ let windowY = 0;
 let zoomFactor = 1;
 
 let renderingConfig;
+
+let startTime = 0;
+let timer;
 
 /**
  * Defines all possible colors for the tile numbers
@@ -482,6 +487,7 @@ overlay2Canvas.addEventListener("click", (e) => {
 
     if (isFirstClick) {
         initBombs(pos.x, pos.y);
+        initTime();
         isFirstClick = false;
     }
 
