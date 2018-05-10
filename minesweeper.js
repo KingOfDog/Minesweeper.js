@@ -80,8 +80,6 @@ function animateTile(x, y, curWidth, curHeight, finalWidth, finalHeight, curRadi
     else
         curRadius = finalRadius;
 
-    // drawRoundedRect(ctx, x + 1, y + 1, finalWidth - 2, finalHeight - 2, finalRadius, getColor(x, y));
-
     drawRoundedRect(ctx, x + (finalWidth - curWidth) / 2, y + (finalHeight - curHeight) / 2, curWidth, curHeight, curRadius, color);
 
     requestAnimFrame(() => {
@@ -129,8 +127,8 @@ function applyScaling() {
 }
 
 function calcScaling(field = fieldSize, tile = tileSize, zoom = zoomFactor) {
-    const width = Math.ceil(field.x * zoom);
-    const height = Math.ceil(field.y * zoom);
+    const width = Math.ceil(field.x * zoom) + 1;
+    const height = Math.ceil(field.y * zoom) + 1;
 
     const offsetX = Math.floor(windowX * field.x);
     const offsetY = Math.floor(windowY * field.y);
@@ -195,6 +193,9 @@ function drawTile(x, y, animations = true) {
     const virtualX = renderingConfig.offsetX + x;
     const virtualY = renderingConfig.offsetY + y;
 
+    if(virtualX >= fieldSize.x || virtualY >= fieldSize.y)
+        return;
+    
     const content = field[virtualX][virtualY];
 
     const width = .8 * renderingConfig.sizeX;
@@ -216,16 +217,19 @@ function drawTile(x, y, animations = true) {
 
     if (!content.flagged && content.clicked) {
         color = "#ddd";
-        if (content.tileValue !== 0) {
+        if(content.tileValue === true) {
+            text = "";
+            fontFamily = "FontAwesome";
+            textColor = "#aa2211";
+            color = "#333";
+        } else if (content.tileValue !== 0) {
             text = content.tileValue;
             textColor = colors[content.tileValue];
-            // animateText(content.tileValue, (x + .5) * tileSize.x, y * tileSize.y, 0, fontSize, new Date().getTime(), duration, colors[content.tileValue]);
         }
     } else if (content.flagged) {
         color = "#ff0000";
         fontFamily = "FontAwesome";
         text = "";
-        // animateText("", (x + .5) * tileSize.x, y * tileSize.y, 0, fontSize, new Date().getTime(), duration, "white", "FontAwesome");
     }
 
     animateTile(drawX, drawY, 0, 0, width, height, 0, radius, new Date().getTime(), duration, color);
@@ -252,9 +256,9 @@ function easeInOutCubic(t, b, c, d) {
 }
 
 function gameOverEvent() {
-    console.log("Game Over");
+    play = false;
     animateBackground(0, 0, canvas.width, canvas.height, 0, .75, new Date().getTime(), 200, {r: 0, g: 0, b: 0, a: 0});
-    animateText("Game Over", canvas.width / 2, canvas.height / 2, 0, tileSize.y * 1.33, new Date().getTime(), 200, "orange", "Roboto", overlay2Ctx);
+    animateText("Game Over", fieldSize.x / 2 - .5, fieldSize.y / 2 - .5, 0, tileSize.y * 1.33, new Date().getTime(), 200, "orange", "Roboto", overlay2Ctx);
 }
 
 function getPosition(e) {
@@ -327,6 +331,17 @@ function initBombs(startX, startY) {
     }
 }
 
+function initTime() {
+    startTime = new Date().getTime();
+    timer = setInterval(() => {
+        const duration = (new Date().getTime() - startTime) / 1000;
+        const minutes = Math.floor(duration / 60);
+        const seconds = Math.floor(duration % 60);
+        
+        timeEl.innerText = (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+    }, 1000);
+}
+
 function scaleCanvas() {
     let size = window.innerWidth / fieldSize.x * .9;
 
@@ -358,7 +373,7 @@ function scaleCanvas() {
 }
 
 function tileClickEvent(x, y) {
-    if (gameOver)
+    if (gameOver || victory)
         return;
     uncoverTile(x, y);
     if (!field[x][y].flagged && field[x][y].tileValue === true) {
@@ -383,6 +398,9 @@ function tileFlag(x, y) {
     field[x][y].flagged = !field[x][y].flagged;
     field[x][y].clicked = field[x][y].flagged;
 
+    x -= renderingConfig.offsetX;
+    y -= renderingConfig.offsetY;
+    
     const drawX = (x - renderingConfig.tiltX) * renderingConfig.sizeX;
     const drawY = (y - renderingConfig.tiltY) * renderingConfig.sizeY;
 
@@ -404,7 +422,7 @@ function uncoverTile(x, y) {
         return;
     }
     field[x][y].clicked = true;
-    drawTile(x, y, );
+    drawTile(x - renderingConfig.offsetX, y - renderingConfig.offsetY);
     if (field[x][y].tileValue === true) {
         gameOverEvent();
     }
@@ -423,12 +441,13 @@ function victoryCheck() {
 }
 
 function victoryEvent() {
-    console.log("Win!");
-    animate();
-    play = false;
-    const fontSize = tileSize.y * 1.33;
-    animateBackground(0, 0, canvas.width, canvas.height, 0, .01, new Date().getTime(), 200, {r: 0, g: 0, b: 0, a: 0});
-    animateText("Victory!", W / 2, H / 2 - fontSize / 2, 0, fontSize, new Date().getTime(), 200, "green", "Roboto", overlay2Ctx);
+    if(victory) {
+        animateVictory();
+        play = false;
+        const fontSize = tileSize.y * 1.33;
+        animateBackground(0, 0, canvas.width, canvas.height, 0, .01, new Date().getTime(), 200, {r: 0, g: 0, b: 0, a: 0});
+        animateText("Victory!", fieldSize.x / 2 - .5, fieldSize.y / 2 - .5, 0, fontSize, new Date().getTime(), 300, "green", "Roboto", overlay2Ctx);
+    }
 }
 
 Object.prototype.count = function (val) {
@@ -456,6 +475,9 @@ Object.prototype.countFlagged = function (val) {
 };
 
 overlay2Canvas.addEventListener("click", (e) => {
+    if(isDragging)
+        return;
+    
     const pos = getPosition(e);
 
     if (isFirstClick) {
@@ -471,6 +493,9 @@ overlay2Canvas.addEventListener("click", (e) => {
 });
 
 overlay2Canvas.addEventListener("dblclick", (e) => {
+    if(isDragging)
+        return;
+    
     const pos = getPosition(e);
 
     tileDoubleClick(pos.x, pos.y);
@@ -479,6 +504,9 @@ overlay2Canvas.addEventListener("dblclick", (e) => {
 });
 
 overlay2Canvas.addEventListener("contextmenu", (e) => {
+    if(isDragging)
+        return;
+    
     e.preventDefault();
 
     const pos = getPosition(e);
@@ -516,57 +544,51 @@ window.addEventListener("keyup", (e) => {
     applyScaling();
 });
 
-// let startClientX = 0;
-// let startClientY = 0;
-//
-// let isDragging = false;
+let startClientX = 0;
+let startClientY = 0;
+let startWindowX = 0;
+let startWindowY = 0;
 
-/*document.addEventListener("mousedown", (e) => {
+let hasClicked = false;
+let isDragging = false;
+
+document.addEventListener("mousedown", (e) => {
     if(e.button === 0) {
-        isDragging = true;
+        hasClicked = true;
         startClientX = e.clientX;
         startClientY = e.clientY;
+        startWindowX = windowX;
+        startWindowY = windowY;
     }
 });
 
-document.addEventListener("mouseup", (e) => {
-    isDragging = false;
+document.addEventListener("mouseup", () => {
+    hasClicked = false;
+    if(isDragging) {
+        setTimeout(() => {
+            isDragging = false;
+        }, 10);
+    }
 });
 
 document.addEventListener("mousemove", (e) => {
-    if(isDragging) {
+    if(hasClicked) {
+        isDragging = true;
+
         const deltaX = e.clientX - startClientX;
         const deltaY = e.clientY - startClientY;
-        startClientX = e.clientX;
-        startClientY = e.clientY;
-        windowX -= 1 / deltaX / 10;
-        windowY -= 1 / deltaY / 10;
+
+        windowX = startWindowX - deltaX / W;
+        windowY = startWindowY - deltaY / H;
 
         windowX = Math.min(windowX, 1 - zoomFactor);
         windowY = Math.min(windowY, 1 - zoomFactor);
         windowX = Math.max(windowX, 0);
         windowY = Math.max(windowY, 0);
 
-        console.log(windowX, windowY);
-
-        // console.log(e, e.clientX - startClientX, e.clientY - startClientY);
-        // offsetX += (e.clientX - startClientX);
-        // offsetY += (e.clientY - startClientY);
-        // startClientX = e.clientX;
-        // startClientY = e.clientY;
         applyScaling();
     }
-});*/
-
-// document.addEventListener("dragstart", (e) => {
-//     console.log(e);
-//     startClientX = e.clientX;
-//     startClientY = e.clientY;
-// });
-//
-// overlay2Canvas.addEventListener("drag", (e) => {
-//     console.log(startClientX - e.clientX);
-// });
+});
 
 window.addEventListener("resize", () => {
     scaleCanvas();
