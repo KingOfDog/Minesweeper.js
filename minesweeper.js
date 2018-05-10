@@ -267,8 +267,8 @@ function gameOverEvent() {
 }
 
 function getPosition(e) {
-    const x = (e.x - canvas.offsetLeft) / W * zoomFactor + windowX;
-    const y = (e.y - canvas.offsetTop) / H * zoomFactor + windowY;
+    const x = (e.x - (window.innerWidth - W) / 2) / W * zoomFactor + windowX;
+    const y = (e.y - (window.innerHeight - H) / 2) / H * zoomFactor + windowY;
     const fieldX = Math.floor(x * fieldSize.x);
     const fieldY = Math.floor(y * fieldSize.y);
 
