@@ -80,8 +80,6 @@ function animateTile(x, y, curWidth, curHeight, finalWidth, finalHeight, curRadi
     else
         curRadius = finalRadius;
 
-    // drawRoundedRect(ctx, x + 1, y + 1, finalWidth - 2, finalHeight - 2, finalRadius, getColor(x, y));
-
     drawRoundedRect(ctx, x + (finalWidth - curWidth) / 2, y + (finalHeight - curHeight) / 2, curWidth, curHeight, curRadius, color);
 
     requestAnimFrame(() => {
@@ -258,10 +256,9 @@ function easeInOutCubic(t, b, c, d) {
 }
 
 function gameOverEvent() {
-    console.log("Game Over");
     play = false;
     animateBackground(0, 0, canvas.width, canvas.height, 0, .75, new Date().getTime(), 200, {r: 0, g: 0, b: 0, a: 0});
-    animateText("Game Over", fieldSize.x / 2, fieldSize.y / 2, 0, tileSize.y * 1.33, new Date().getTime(), 200, "orange", "Roboto", overlay2Ctx);
+    animateText("Game Over", fieldSize.x / 2 - .5, fieldSize.y / 2 - .5, 0, tileSize.y * 1.33, new Date().getTime(), 200, "orange", "Roboto", overlay2Ctx);
 }
 
 function getPosition(e) {
@@ -367,7 +364,7 @@ function scaleCanvas() {
 }
 
 function tileClickEvent(x, y) {
-    if (gameOver)
+    if (gameOver || victory)
         return;
     console.log(x, y);
     uncoverTile(x, y);
@@ -436,12 +433,13 @@ function victoryCheck() {
 }
 
 function victoryEvent() {
-    console.log("Win!");
-    animate();
-    play = false;
-    const fontSize = tileSize.y * 1.33;
-    animateBackground(0, 0, canvas.width, canvas.height, 0, .01, new Date().getTime(), 200, {r: 0, g: 0, b: 0, a: 0});
-    animateText("Victory!", W / 2, H / 2 - fontSize / 2, 0, fontSize, new Date().getTime(), 200, "green", "Roboto", overlay2Ctx);
+    if(victory) {
+        animateVictory();
+        play = false;
+        const fontSize = tileSize.y * 1.33;
+        animateBackground(0, 0, canvas.width, canvas.height, 0, .01, new Date().getTime(), 200, {r: 0, g: 0, b: 0, a: 0});
+        animateText("Victory!", fieldSize.x / 2 - .5, fieldSize.y / 2 - .5, 0, fontSize, new Date().getTime(), 300, "green", "Roboto", overlay2Ctx);
+    }
 }
 
 Object.prototype.count = function (val) {
