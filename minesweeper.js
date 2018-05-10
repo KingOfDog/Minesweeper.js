@@ -1,7 +1,8 @@
 const canvas = document.getElementById('minesweeper-game');
 const ctx = canvas.getContext('2d');
-const container = document.getElementById('game-container');
+const statsContainer = document.getElementById('game-stats');
 const timeEl = document.getElementById('time');
+const bombsEl = document.getElementById('bombs');
 
 const fieldSize = {x: 16, y: 12};
 let tileSize;
@@ -170,6 +171,17 @@ function countFlaggedBombs(x, y) {
     return tiles.countFlagged(true);
 }
 
+function countTotalFlags() {
+    let count = 0;
+    for(let x = 0; x < fieldSize.x; x++) {
+        for(let y = 0; y < fieldSize.y; y++) {
+            if(field[x][y].flagged)
+                count++;
+        }
+    }
+    return count;
+}
+
 function drawGrid(animations = true) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -200,7 +212,7 @@ function drawTile(x, y, animations = true) {
 
     if(virtualX >= fieldSize.x || virtualY >= fieldSize.y)
         return;
-    
+
     const content = field[virtualX][virtualY];
 
     const width = .8 * renderingConfig.sizeX;
@@ -312,6 +324,7 @@ function initGame() {
     }
 
     scaleCanvas();
+    updateBombs();
 }
 
 function initBombs(startX, startY) {
@@ -342,7 +355,7 @@ function initTime() {
         const duration = (new Date().getTime() - startTime) / 1000;
         const minutes = Math.floor(duration / 60);
         const seconds = Math.floor(duration % 60);
-        
+
         timeEl.innerText = (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
     }, 1000);
 }
@@ -365,6 +378,8 @@ function scaleCanvas() {
     overlayCanvas.height = H;
     overlay2Canvas.width = W;
     overlay2Canvas.height = H;
+
+    statsContainer.style.width = W + "px";
 
     initBalls();
 
@@ -405,7 +420,7 @@ function tileFlag(x, y) {
 
     x -= renderingConfig.offsetX;
     y -= renderingConfig.offsetY;
-    
+
     const drawX = (x - renderingConfig.tiltX) * renderingConfig.sizeX;
     const drawY = (y - renderingConfig.tiltY) * renderingConfig.sizeY;
 
@@ -436,6 +451,11 @@ function uncoverTile(x, y) {
             uncoverSurroundings(x, y);
         }, 100);
     }
+}
+
+function updateBombs() {
+    const remainingBombs = bombCount - countTotalFlags();
+    bombsEl.innerText = (remainingBombs < 100 ? "0" : 0) + (remainingBombs < 10 ? "0" : "") + remainingBombs;
 }
 
 function victoryCheck() {
@@ -482,7 +502,7 @@ Object.prototype.countFlagged = function (val) {
 overlay2Canvas.addEventListener("click", (e) => {
     if(isDragging)
         return;
-    
+
     const pos = getPosition(e);
 
     if (isFirstClick) {
@@ -501,7 +521,7 @@ overlay2Canvas.addEventListener("click", (e) => {
 overlay2Canvas.addEventListener("dblclick", (e) => {
     if(isDragging)
         return;
-    
+
     const pos = getPosition(e);
 
     tileDoubleClick(pos.x, pos.y);
@@ -512,12 +532,14 @@ overlay2Canvas.addEventListener("dblclick", (e) => {
 overlay2Canvas.addEventListener("contextmenu", (e) => {
     if(isDragging)
         return;
-    
+
     e.preventDefault();
 
     const pos = getPosition(e);
 
     tileFlag(pos.x, pos.y);
+
+    updateBombs();
 });
 
 window.addEventListener("keyup", (e) => {

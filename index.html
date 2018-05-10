@@ -30,16 +30,21 @@
             transform: translateX(-50%);
         }
 
-        #time-container {
-            float: right;
+        .stat-container {
+            float: left;
             background-color: black;
             border-radius: 10px;
             color: red;
             font-size: 4vh;
             font-family: "SF Digital Readout", Roboto, Arial, sans-serif;
+            margin: 0 10px;
         }
 
-        #time {
+        .stat-container.right {
+            float: right;
+        }
+
+        #time, #bombs {
             margin: 0 15px;
         }
     </style>
@@ -47,7 +52,13 @@
 <body style="margin: 0">
 
 <div id="game-stats">
-    <div id="time-container">
+    <div class="stat-container">
+        <span id="bombs">
+            000
+        </span>
+    </div>
+
+    <div class="stat-container right">
         <span id="time">
             00:00
         </span>
