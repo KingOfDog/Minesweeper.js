@@ -195,8 +195,6 @@ function drawTile(x, y, animations = true) {
     const virtualX = renderingConfig.offsetX + x;
     const virtualY = renderingConfig.offsetY + y;
 
-    console.log(x, y);
-
     if(virtualX >= fieldSize.x || virtualY >= fieldSize.y)
         return;
 
@@ -221,7 +219,12 @@ function drawTile(x, y, animations = true) {
 
     if (!content.flagged && content.clicked) {
         color = "#ddd";
-        if (content.tileValue !== 0) {
+        if(content.tileValue === true) {
+            text = "";
+            fontFamily = "FontAwesome";
+            textColor = "#aa2211";
+            color = "#333";
+        } else if (content.tileValue !== 0) {
             text = content.tileValue;
             textColor = colors[content.tileValue];
         }
@@ -256,8 +259,9 @@ function easeInOutCubic(t, b, c, d) {
 
 function gameOverEvent() {
     console.log("Game Over");
+    play = false;
     animateBackground(0, 0, canvas.width, canvas.height, 0, .75, new Date().getTime(), 200, {r: 0, g: 0, b: 0, a: 0});
-    animateText("Game Over", canvas.width / 2, canvas.height / 2, 0, tileSize.y * 1.33, new Date().getTime(), 200, "orange", "Roboto", overlay2Ctx);
+    animateText("Game Over", fieldSize.x / 2, fieldSize.y / 2, 0, tileSize.y * 1.33, new Date().getTime(), 200, "orange", "Roboto", overlay2Ctx);
 }
 
 function getPosition(e) {
@@ -273,7 +277,7 @@ function getPosition(e) {
 
 function getSurroundingTiles(x, y) {
     const tiles = {};
-    if (x > 1) {
+    if (x > 0) {
         tiles["left"] = {tileValue: field[x - 1][y], x: x - 1, y: y};
         if (y > 0) {
             tiles["left-top"] = {tileValue: field[x - 1][y - 1], x: x - 1, y: y - 1};
