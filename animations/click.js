@@ -4,9 +4,6 @@ window.requestAnimFrame = (function (callback) {
     }
 })();
 
-const overlayCanvas = document.getElementById('minesweeper-overlay');
-const overlayCtx = overlayCanvas.getContext('2d');
-
 const particlesPerExplosion = 10;
 const particlesMinSpeed     = 3;
 const particlesMaxSpeed     = 5;
@@ -40,7 +37,7 @@ function drawClickAnimation() {
     now   = Date.now();
     delta = now - then;
 
-    overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+    game.layer1.clearRect(0, 0, game.width, game.height);
 
     // New frame
     if (delta > interval) {
@@ -81,11 +78,11 @@ function drawExplosion() {
                 continue;
             }
 
-            overlayCtx.beginPath();
-            overlayCtx.arc(particle.x, particle.y, particle.size, Math.PI * 2, 0, false);
-            overlayCtx.closePath();
-            overlayCtx.fillStyle = 'rgb(' + particle.r + ',' + particle.g + ',' + particle.b + ')';
-            overlayCtx.fill();
+            game.layer1.beginPath();
+            game.layer1.arc(particle.x, particle.y, particle.size, Math.PI * 2, 0, false);
+            game.layer1.closePath();
+            game.layer1.fillStyle = 'rgb(' + particle.r + ',' + particle.g + ',' + particle.b + ')';
+            game.layer1.fill();
 
             // Update
             particle.x += particle.xv;
@@ -158,5 +155,3 @@ function randInt(min, max, positive) {
     return num;
 
 }
-
-drawClickAnimation();
