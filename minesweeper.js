@@ -402,7 +402,7 @@ function testFlagPositions() {
 }
 
 function tileClickEvent(x, y) {
-    if (gameOver || victory)
+    if (gameOver || victoryCheck())
         return;
     uncoverTile(x, y);
     if (!field[x][y].flagged && field[x][y].tileValue === true) {
