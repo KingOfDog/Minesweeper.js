@@ -9,7 +9,6 @@ let tileSize;
 const bombCount = 25;
 const field = [];
 let gameOver = false;
-let victory = false;
 const scaleFactor = .5;
 let isFirstClick = true;
 
@@ -387,7 +386,7 @@ function scaleCanvas() {
 
     if (gameOver) {
         gameOverEvent();
-    } else if (victory) {
+    } else if (victoryCheck()) {
         victoryEvent();
     }
 }
@@ -469,18 +468,16 @@ function updateBombs() {
 }
 
 function victoryCheck() {
-    if (!victory && (countClickedTiles() === fieldSize.x * fieldSize.y - bombCount || (countTotalFlags() === bombCount && testFlagPositions()))) {
-        victory = true;
-        victoryEvent();
-    }
+    return !play && (countClickedTiles() === fieldSize.x * fieldSize.y - bombCount || (countTotalFlags() === bombCount && testFlagPositions()));
+
 }
 
 function victoryEvent() {
-    if(victory) {
+    if(victoryCheck()) {
         animateVictory();
         play = false;
         const fontSize = tileSize.y * 1.33;
-        animateBackground(0, 0, canvas.width, canvas.height, 0, .01, new Date().getTime(), 200, {r: 0, g: 0, b: 0, a: 0});
+        animateBackground(0, 0, canvas.width, canvas.height, 0, .01, new Date().getTime(), 300, {r: 0, g: 0, b: 0, a: 0});
         animateText("Victory!", fieldSize.x / 2 - .5, fieldSize.y / 2 - .5, 0, fontSize, new Date().getTime(), 300, "green", "Roboto", overlay2Ctx);
     }
 }
@@ -523,7 +520,7 @@ overlay2Canvas.addEventListener("click", (e) => {
 
     tileClickEvent(pos.x, pos.y);
 
-    victoryCheck();
+    victoryEvent();
 
     clicked(e);
 });
@@ -536,7 +533,7 @@ overlay2Canvas.addEventListener("dblclick", (e) => {
 
     tileDoubleClick(pos.x, pos.y);
 
-    victoryCheck();
+    victoryEvent();
 });
 
 overlay2Canvas.addEventListener("contextmenu", (e) => {
@@ -551,7 +548,7 @@ overlay2Canvas.addEventListener("contextmenu", (e) => {
 
     updateBombs();
 
-    victoryCheck();
+    victoryEvent();
 });
 
 window.addEventListener("keyup", (e) => {
