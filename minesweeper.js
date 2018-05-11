@@ -151,6 +151,17 @@ String.prototype.toDOM=function(){
     return b;
 };
 
+let game;
 
-const game = new Game();
-game.initGame();
+const startContainer = document.getElementsByClassName('start-container')[0];
+const startBackground = document.getElementsByClassName('start-background')[0];
+const startButton = document.getElementById('startgame');
+startButton.addEventListener('click', () => {
+    startContainer.classList.add('slideDown');
+    startBackground.classList.add('transparent');
+    game = new Game();
+    game.initGame();
+});
+
+// const game = new Game();
+// game.initGame();

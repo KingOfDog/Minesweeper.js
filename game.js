@@ -1,23 +1,26 @@
 class Game {
     constructor() {
-        const elements = `<div id="game-stats">
-            <div class="stat-container">
-                <span id="bombs">
-                    000
-                </span>
+        const elements = `
+        <div class="main-container">
+             <div id="game-stats" class="game-stats">
+                <div class="stat-container">
+                    <span id="bombs">
+                        000
+                    </span>
+                </div>
+
+                <div class="stat-container right">
+                    <span id="time">
+                        00:00
+                    </span>
+                </div>
             </div>
 
-            <div class="stat-container right">
-                <span id="time">
-                    00:00
-                </span>
+            <div class="game-container">
+                <canvas id="minesweeper-game" width="100" height="100"></canvas>
+                <canvas class="overlay" id="minesweeper-overlay" width="100" height="100"></canvas>
+                <canvas class="overlay" id="minesweeper-overlay2" width="100" height="100"></canvas>
             </div>
-        </div>
-
-        <div id="game-container">
-            <canvas id="minesweeper-game" width="100" height="100"></canvas>
-            <canvas id="minesweeper-overlay" width="100" height="100"></canvas>
-            <canvas id="minesweeper-overlay2" width="100" height="100"></canvas>
         </div>`.toDOM();
         document.body.appendChild(elements);
 
