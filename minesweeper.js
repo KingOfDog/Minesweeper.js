@@ -141,4 +141,16 @@ Object.prototype.countFlagged = function (val) {
     return counter;
 };
 
+String.prototype.toDOM=function(){
+    let d=document
+        ,i
+        ,a=d.createElement("div")
+        ,b=d.createDocumentFragment();
+    a.innerHTML=this;
+    while(i=a.firstChild)b.appendChild(i);
+    return b;
+};
+
+
 const game = new Game();
+game.initGame();

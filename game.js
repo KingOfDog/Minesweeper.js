@@ -1,11 +1,35 @@
 class Game {
-    // tileSize;
-    // renderingConfig;
-    // timer;
-
     constructor() {
+        const elements = `<div id="game-stats">
+            <div class="stat-container">
+                <span id="bombs">
+                    000
+                </span>
+            </div>
+
+            <div class="stat-container right">
+                <span id="time">
+                    00:00
+                </span>
+            </div>
+        </div>
+
+        <div id="game-container">
+            <canvas id="minesweeper-game" width="100" height="100"></canvas>
+            <canvas id="minesweeper-overlay" width="100" height="100"></canvas>
+            <canvas id="minesweeper-overlay2" width="100" height="100"></canvas>
+        </div>`.toDOM();
+        document.body.appendChild(elements);
+
         this.canvas = document.getElementById('minesweeper-game');
         this.ctx = this.canvas.getContext('2d');
+
+        this.layer1Canvas = document.getElementById('minesweeper-overlay');
+        this.layer1 = this.layer1Canvas.getContext('2d');
+
+        this.layer2Canvas = document.getElementById('minesweeper-overlay2');
+        this.layer2 = this.layer2Canvas.getContext('2d');
+
         this.statsContainer = document.getElementById('game-stats');
         this.timeEl = document.getElementById('time');
         this.bombsEl = document.getElementById('bombs');
@@ -32,8 +56,6 @@ class Game {
         this.isDragging = false;
 
         this.ctx.scale(this.canvas.width / this.fieldSize.x * this.scaleFactor, this.canvas.height / this.fieldSize.y * this.scaleFactor);
-
-        this.initGame();
     }
 
     applyScaling() {
@@ -159,7 +181,7 @@ class Game {
             b: 0,
             a: 0
         });
-        animateText(overlay2Ctx, this.renderingConfig, "Game Over", this.fieldSize.x / 2 - .5, this.fieldSize.y / 2 - .5, 0, this.tileSize.y * 1.33, new Date().getTime(), 200, "orange", "Roboto");
+        animateText(this.layer2, this.renderingConfig, "Game Over", this.fieldSize.x / 2 - .5, this.fieldSize.y / 2 - .5, 0, this.tileSize.y * 1.33, new Date().getTime(), 200, "orange", "Roboto");
     }
 
     getColor(x, y) {
@@ -230,7 +252,7 @@ class Game {
     }
 
     initEventListeners() {
-        overlay2Canvas.addEventListener("click", (e) => {
+        this.layer2Canvas.addEventListener("click", (e) => {
             if (this.isDragging)
                 return;
 
@@ -249,7 +271,7 @@ class Game {
             clicked(e);
         });
 
-        overlay2Canvas.addEventListener("dblclick", (e) => {
+        this.layer2Canvas.addEventListener("dblclick", (e) => {
             if (this.isDragging)
                 return;
 
@@ -260,7 +282,7 @@ class Game {
             this.victoryEvent();
         });
 
-        overlay2Canvas.addEventListener("contextmenu", (e) => {
+        this.layer2Canvas.addEventListener("contextmenu", (e) => {
             if (this.isDragging)
                 return;
 
@@ -373,6 +395,7 @@ class Game {
 
         this.scaleCanvas();
         this.updateBombs();
+        drawClickAnimation();
 
         this.initEventListeners();
     }
@@ -401,21 +424,14 @@ class Game {
 
         this.tileSize = {x: size, y: size};
 
-        this.width = this.fieldSize.x * size;
-        this.height = this.fieldSize.y * size;
-
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
-        overlayCanvas.width = this.width;
-        overlayCanvas.height = this.height;
-        overlay2Canvas.width = this.width;
-        overlay2Canvas.height = this.height;
+        this.width = this.canvas.width = this.layer1Canvas.width = this.layer2Canvas.width = this.fieldSize.x * size;
+        this.height = this.canvas.height = this.layer1Canvas.height = this.layer2Canvas.height = this.fieldSize.y * size;
 
         this.statsContainer.style.width = this.width + "px";
 
-        initBalls();
-
         this.applyScaling();
+
+        initBalls();
 
         if (this.gameOver) {
             this.gameOverEvent();
@@ -516,8 +532,7 @@ class Game {
                 b: 0,
                 a: 0
             });
-            animateText(overlay2Ctx, this.renderingConfig, "Victory!", this.fieldSize.x / 2 - .5, this.fieldSize.y / 2 - .5, 0, fontSize, new Date().getTime(), 300, "green", "Roboto");
+            animateText(this.layer2, this.renderingConfig, "Victory!", this.fieldSize.x / 2 - .5, this.fieldSize.y / 2 - .5, 0, fontSize, new Date().getTime(), 300, "green", "Roboto");
         }
     }
-
 }
