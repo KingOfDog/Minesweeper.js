@@ -157,11 +157,24 @@ const startContainer = document.getElementsByClassName('start-container')[0];
 const startBackground = document.getElementsByClassName('start-background')[0];
 const startButton = document.getElementById('startgame');
 startButton.addEventListener('click', () => {
+    startGame();
+});
+
+function startGame() {
+    startContainer.classList.remove('slideUp');
     startContainer.classList.add('slideDown');
     startBackground.classList.add('transparent');
     game = new Game();
     game.initGame();
-});
+}
 
-// const game = new Game();
-// game.initGame();
+function restartGame() {
+    game.cancelGame();
+    setTimeout(() => {
+        startContainer.classList.remove('slideDown');
+        startContainer.classList.add('slideUp');
+        startBackground.classList.remove('transparent');
+        game.destroy();
+        game = null;
+    }, 500);
+}
