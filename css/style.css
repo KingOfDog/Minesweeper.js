@@ -1,3 +1,6 @@
+@import url('/fonts/Roboto-Regular.ttf');
+@import url('/fonts/SFDigitalReadout-Heavy.ttf');
+
 html {
     overflow: hidden;
 }
