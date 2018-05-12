@@ -8,6 +8,10 @@ class Game {
                         000
                     </span>
                 </div>
+                
+                <div class="restart">
+                    <button id="restart-btn">Restart</button>
+                </div>
 
                 <div class="stat-container right">
                     <span id="time">
@@ -24,6 +28,8 @@ class Game {
         </div>`.toDOM();
         document.body.appendChild(elements);
 
+        this.container = document.getElementsByClassName('main-container')[0];
+
         this.canvas = document.getElementById('minesweeper-game');
         this.ctx = this.canvas.getContext('2d');
 
@@ -36,6 +42,7 @@ class Game {
         this.statsContainer = document.getElementById('game-stats');
         this.timeEl = document.getElementById('time');
         this.bombsEl = document.getElementById('bombs');
+        this.restartButton = document.getElementById('restart-btn');
 
         this.fieldSize = {x: 16, y: 12};
         this.bombCount = 25;
@@ -65,6 +72,10 @@ class Game {
         this.renderingConfig = this.calcScaling();
 
         this.drawGrid(false);
+    }
+
+    cancelGame() {
+        this.container.classList.add('popAway');
     }
 
     calcScaling() {
@@ -115,6 +126,10 @@ class Game {
             }
         }
         return count;
+    }
+
+    destroy() {
+        this.container.remove();
     }
 
     drawGrid(animations = true) {
@@ -383,6 +398,10 @@ class Game {
         window.addEventListener("resize", () => {
             this.scaleCanvas();
         });
+
+        this.restartButton.addEventListener('click', () => {
+            restartGame();
+        });
     }
 
     /**
@@ -412,10 +431,6 @@ class Game {
 
             this.timeEl.innerText = (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
         }, 1000);
-    }
-
-    restartGame() {
-
     }
 
     scaleCanvas() {
