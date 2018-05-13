@@ -269,24 +269,43 @@ class Game {
         }
     }
 
+    clickEventHandler(e) {
+        if (this.isDragging)
+            return;
+
+        const pos = this.getPosition(e);
+
+        if (this.isFirstClick) {
+            this.initBombs(pos.x, pos.y);
+            this.initTime();
+            this.isFirstClick = false;
+        }
+
+        this.tileClickEvent(pos.x, pos.y);
+
+        this.victoryEvent();
+
+        clicked(e);
+    }
+
+    rightClickEventHandler(e) {
+        if (this.isDragging)
+            return;
+
+        e.preventDefault();
+
+        const pos = this.getPosition(e);
+
+        this.tileFlag(pos.x, pos.y);
+
+        this.updateBombs();
+
+        this.victoryEvent();
+    }
+
     initEventListeners() {
         this.layer2Canvas.addEventListener("click", (e) => {
-            if (this.isDragging)
-                return;
-
-            const pos = this.getPosition(e);
-
-            if (this.isFirstClick) {
-                this.initBombs(pos.x, pos.y);
-                this.initTime();
-                this.isFirstClick = false;
-            }
-
-            this.tileClickEvent(pos.x, pos.y);
-
-            this.victoryEvent();
-
-            clicked(e);
+            this.clickEventHandler(e);
         });
 
         this.layer2Canvas.addEventListener("dblclick", (e) => {
@@ -301,18 +320,7 @@ class Game {
         });
 
         this.layer2Canvas.addEventListener("contextmenu", (e) => {
-            if (this.isDragging)
-                return;
-
-            e.preventDefault();
-
-            const pos = this.getPosition(e);
-
-            this.tileFlag(pos.x, pos.y);
-
-            this.updateBombs();
-
-            this.victoryEvent();
+            this.rightClickEventHandler(e);
         });
 
         window.addEventListener("keyup", (e) => {
@@ -358,6 +366,13 @@ class Game {
 
 
         document.addEventListener("mousedown", (e) => {
+            if(isTouchDevice) {
+                e.preventDefault();
+                this.pressTimer = window.setTimeout(function () {
+                    game.rightClickEventHandler(e);
+                }, 1000)
+            }
+
             if (e.button === 0) {
                 this.hasClicked = true;
                 this.startClientX = e.clientX;
@@ -367,7 +382,13 @@ class Game {
             }
         });
 
-        document.addEventListener("mouseup", () => {
+        document.addEventListener("mouseup", (e) => {
+            if(isTouchDevice) {
+                e.preventDefault();
+                clearTimeout(this.pressTimer);
+                this.clickEventHandler(e);
+            }
+
             this.hasClicked = false;
             if (this.isDragging) {
                 setTimeout(() => {

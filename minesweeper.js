@@ -11,6 +11,8 @@ const colors = {
     6: "pink"
 };
 
+const isTouchDevice = 'ontouchstart' in document.documentElement;
+
 function animateBackground(ctx, x, y, width, height, curOpacity, finalOpacity, startTime, duration, color) {
     const time = (new Date()).getTime() - startTime;
 
