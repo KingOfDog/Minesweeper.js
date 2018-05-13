@@ -11,7 +11,7 @@ const colors = {
     6: "pink"
 };
 
-function animateBackground(x, y, width, height, curOpacity, finalOpacity, startTime, duration, color) {
+function animateBackground(ctx, x, y, width, height, curOpacity, finalOpacity, startTime, duration, color) {
     const time = (new Date()).getTime() - startTime;
 
     if (curOpacity >= finalOpacity)
@@ -26,12 +26,12 @@ function animateBackground(x, y, width, height, curOpacity, finalOpacity, startT
 
     color.a = curOpacity;
 
-    overlay2Ctx.clearRect(x, y, width, height);
-    overlay2Ctx.fillStyle = "rgba(" + color.r + "," + color.g + "," + color.b + "," + color.a + ")";
-    overlay2Ctx.fillRect(x, y, width, height);
+    ctx.clearRect(x, y, width, height);
+    ctx.fillStyle = "rgba(" + color.r + "," + color.g + "," + color.b + "," + color.a + ")";
+    ctx.fillRect(x, y, width, height);
 
     requestAnimFrame(function () {
-        animateBackground(x, y, width, height, curOpacity, finalOpacity, startTime, duration, color);
+        animateBackground(ctx, x, y, width, height, curOpacity, finalOpacity, startTime, duration, color);
     });
 }
 
@@ -85,7 +85,7 @@ function animateText(ctx, renderingConfig, text, x, y, curFontSize, finalFontSiz
     const textDrawY = (y + .5 - renderingConfig.tiltY) * renderingConfig.sizeY + curFontSize * .33;
 
     if (font === undefined)
-        font = "Roboto";
+        font = "Roboto Bold";
 
     ctx.fillStyle = color;
     ctx.font = "bold " + curFontSize + "px " + font;

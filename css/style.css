@@ -1,18 +1,37 @@
 @font-face {
     font-family: "Roboto";
-    src: url("/fonts/Roboto-Regular.ttf");
+    font-weight: 500;
+    src: url("../fonts/Roboto-Regular.ttf");
+}
+
+@font-face {
+    font-family: "Roboto Bold";
+    font-weight: bold;
+    src: url("../fonts/Roboto-Bold.ttf");
+}
+
+@font-face {
+    font-family: "Roboto Black";
+    font-weight: bold;
+    src: url("../fonts/Roboto-Black.ttf");
+}
+
+@font-face {
+    font-family: "Roboto Light";
+    font-weight: 100;
+    src: url("../fonts/Roboto-Light.ttf");
 }
 
 @font-face {
     font-family: "SF Digital Readout";
-    src: url("/fonts/SFDigitalReadout-Heavy.ttf");
+    src: url("../fonts/SFDigitalReadout-Medium.ttf");
 }
 
 html {
     overflow: hidden;
 }
 
-body {
+html, body, p, button, h1, h2 {
     margin: 0;
     font-family: Roboto, Helvetica, Arial, sans-serif;
     font-size: 1.4em;
@@ -74,7 +93,9 @@ body {
 }
 
 .start-container h3 {
-    font-weight: lighter;
+    font-size: .8em;
+    font-family: "Roboto Light", Roboto, Helvetica, sans-serif;
+    font-weight: 100;
 }
 
 button {
@@ -121,9 +142,9 @@ button:active {
 
 .game-container {
     position: absolute;
-    bottom: 2.5%;
+    top: 52.5vh;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
 }
 
 .game-stats {

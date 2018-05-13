@@ -45,7 +45,7 @@ class Game {
         this.restartButton = document.getElementById('restart-btn');
 
         this.fieldSize = {x: 16, y: 12};
-        this.bombCount = 25;
+        this.bombCount = this.fieldSize.x * this.fieldSize.y * .25;
         this.field = [];
         this.gameOver = false;
         this.scaleFactor = .5;
@@ -159,7 +159,7 @@ class Game {
 
         let color = this.getColor(virtualX, virtualY);
         const fontSize = this.renderingConfig.sizeY * .5;
-        let fontFamily = "Roboto";
+        let fontFamily = "Roboto Bold";
         let textColor = "white";
         let text = "";
 
@@ -193,13 +193,13 @@ class Game {
 
     gameOverEvent() {
         play = false;
-        animateBackground(0, 0, this.width, this.height, 0, .75, new Date().getTime(), 200, {
+        animateBackground(this.layer2, 0, 0, this.width, this.height, 0, .75, new Date().getTime(), 200, {
             r: 0,
             g: 0,
             b: 0,
             a: 0
         });
-        animateText(this.layer2, this.renderingConfig, "Game Over", this.fieldSize.x / 2 - .5, this.fieldSize.y / 2 - .5, 0, this.tileSize.y * 1.33, new Date().getTime(), 200, "orange", "Roboto");
+        animateText(this.layer2, this.renderingConfig, "Game Over", this.fieldSize.x / 2 - .5, this.fieldSize.y / 2 - .5, 0, this.tileSize.y * 1.33, new Date().getTime(), 200, "orange", "Roboto Black");
     }
 
     getColor(x, y) {
@@ -544,13 +544,13 @@ class Game {
             animateVictory();
             play = false;
             const fontSize = this.tileSize.y * 1.33;
-            animateBackground(0, 0, this.canvas.width, this.canvas.height, 0, .01, new Date().getTime(), 300, {
+            animateBackground(this.layer2, 0, 0, this.canvas.width, this.canvas.height, 0, .01, new Date().getTime(), 300, {
                 r: 0,
                 g: 0,
                 b: 0,
                 a: 0
             });
-            animateText(this.layer2, this.renderingConfig, "Victory!", this.fieldSize.x / 2 - .5, this.fieldSize.y / 2 - .5, 0, fontSize, new Date().getTime(), 300, "green", "Roboto");
+            animateText(this.layer2, this.renderingConfig, "Victory!", this.fieldSize.x / 2 - .5, this.fieldSize.y / 2 - .5, 0, fontSize, new Date().getTime(), 300, "green", "Roboto Black");
         }
     }
 }
